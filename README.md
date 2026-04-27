@@ -56,11 +56,6 @@ pip install -e .
 2. Start Ollama and pull the required local models:
 
 ```bash
-ollama pull llama3.1:8b 
-ollama pull nomic-embed-text
-```
-or
-```bash
 ollama pull mistral:7b 
 ollama pull nomic-embed-text
 ```
