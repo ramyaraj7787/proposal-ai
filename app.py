@@ -146,10 +146,13 @@ def main():
             status.success("✅ Proposal generated successfully!")
             progress_bar.progress(100)
 
-            render_results(result, config["debug_mode"])
+            st.session_state.proposal_result = result
 
         except Exception as e:
             st.error(f"❌ Error occurred: {str(e)}")
+
+    if "proposal_result" in st.session_state:
+        render_results(st.session_state.proposal_result, config["debug_mode"])
 
     # -----------------------------------------------------
     # Footer

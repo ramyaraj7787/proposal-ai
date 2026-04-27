@@ -47,13 +47,13 @@ class Settings(BaseSettings):
     preferred_template_path: Path = Field(default=DEFAULT_TEMPLATE_PATH)
 
     # Maximum size of each text chunk (used in RAG pipeline)
-    max_chunk_size: int = Field(default=1400)
+    max_chunk_size: int = Field(default=1000)
 
     # Overlap between chunks to preserve context
-    chunk_overlap: int = Field(default=220)
+    chunk_overlap: int = Field(default=150)
 
     # Number of top relevant results to retrieve from vector store
-    top_k_results: int = Field(default=5)
+    top_k_results: int = Field(default=3)
 
 
 @lru_cache(maxsize=1)

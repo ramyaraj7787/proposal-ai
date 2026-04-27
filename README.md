@@ -135,21 +135,32 @@ An AI-powered accelerator that converts uploaded RFPs into consultant-ready prop
 
 ## Setup
 
-1. Install dependencies:
+1. Create and activate a virtual environment:
+
+```bash
+# On Windows
+python -m venv .venv
+.venv\Scripts\activate
+
+# On macOS/Linux
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+2. Install dependencies (this reads from `pyproject.toml`):
 
 ```bash
 pip install -e .
 ```
 
-2. Start Ollama and pull the required local models:
+3. Start Ollama and pull the required local models:
 
 ```bash
-ollama pull llama3.1:8b
 ollama pull mistral:7b
 ollama pull nomic-embed-text
 ```
 
-3. Create the vector index from historical content:
+4. Create the vector index from historical content:
 
 ```bash
 python src/scripts/index_documents.py --source_dir data/raw
@@ -157,7 +168,7 @@ python src/scripts/index_documents.py --source_dir data/raw
 
 If you change the ingestion logic or add new proposal decks, rebuild the FAISS index so the latest slide-level content is searchable.
 
-4. Launch the UI:
+5. Launch the UI:
 
 ```bash
 streamlit run app.py
