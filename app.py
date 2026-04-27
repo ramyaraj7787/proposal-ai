@@ -22,6 +22,7 @@ if str(SRC_DIR) not in sys.path:
 # ---------------------------------------------------------
 from core.config import get_settings # added this import so Pylance stops complaining
 from core.constants import APP_NAME, DEFAULT_PROPOSAL_PROMPT
+from core.logger import get_logger
 from graph.builder import build_proposal_graph
 from schemas.state_schema import ProposalInput
 from graph.state import ProposalState
@@ -29,6 +30,8 @@ from services.ingestion.preprocess import build_rfp_preview, save_uploaded_file
 from services.evaluation.metrics import compute_basic_metrics
 from services.evaluation.feedback_store import save_feedback, load_feedback
 from services.generation.prompt_optimizer import build_feedback_summary
+
+logger = get_logger(__name__)
 
 # ---------------------------------------------------------
 # Cached Resources (IMPORTANT for performance)
@@ -136,10 +139,12 @@ def main():
             # Step 3: Run pipeline
             status.info("Running AI pipeline (this may take a few seconds)...")
             start_time = time.time()
+            logger.info("Starting proposal generation for: %s", saved_rfp)
 
             result = graph.invoke(initial_state)
 
             duration = round(time.time() - start_time, 2)
+            logger.info("Proposal generation completed in %ss", duration)
             show_progress(progress_bar, 90, f"Pipeline completed in {duration}s")
 
             # Step 4: Display outputs
@@ -149,6 +154,7 @@ def main():
             st.session_state.proposal_result = result
 
         except Exception as e:
+            logger.error("Proposal generation failed: %s", e, exc_info=True)
             st.error(f"❌ Error occurred: {str(e)}")
 
     if "proposal_result" in st.session_state:

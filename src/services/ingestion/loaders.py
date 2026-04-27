@@ -6,6 +6,10 @@ from docx import Document as WordDocument
 from pypdf import PdfReader
 from pptx import Presentation
 
+from core.logger import get_logger
+
+logger = get_logger(__name__)
+
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".pptx", ".txt"}
 
 
@@ -34,12 +38,19 @@ def load_documents_from_directory(directory: str | Path) -> list[dict]:
             continue
 
         if path.suffix.lower() == ".pptx":
-            # PowerPoint files are indexed per slide so we can preserve template order.
-            documents.extend(_load_pptx_documents(path))
+            slides = _load_pptx_documents(path)
+            logger.info("Loaded %d slides from %s", len(slides), path)
+            documents.extend(slides)
             continue
 
-        text = load_text_from_file(path)
+        try:
+            text = load_text_from_file(path)
+        except Exception as exc:
+            logger.warning("Skipping %s — failed to load: %s", path, exc)
+            continue
+
         if text.strip():
+            logger.info("Loaded document: %s", path)
             documents.append(
                 {
                     "text": text,
@@ -52,7 +63,10 @@ def load_documents_from_directory(directory: str | Path) -> list[dict]:
                     },
                 }
             )
+        else:
+            logger.warning("Skipping %s — empty content", path)
 
+    logger.info("Total documents loaded: %d", len(documents))
     return documents
 
 

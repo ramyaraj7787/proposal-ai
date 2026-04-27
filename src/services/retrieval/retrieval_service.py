@@ -5,11 +5,15 @@ from pathlib import Path
 from pptx import Presentation
 
 from core.config import Settings
+from core.logger import get_logger
 from services.retrieval.vector_store import build_or_load_vector_store
+
+logger = get_logger(__name__)
 
 
 def retrieve_context(query: str, settings: Settings) -> tuple[list[dict], list[str]]:
     """Retrieve the most relevant supporting context for the current RFP."""
+    logger.info("Retrieving context for query (top_k=%d)", settings.top_k_results)
     vector_store = build_or_load_vector_store(settings)
     docs = vector_store.similarity_search(query, k=settings.top_k_results)
     context = []
@@ -32,6 +36,7 @@ def retrieve_context(query: str, settings: Settings) -> tuple[list[dict], list[s
             }
         )
 
+    logger.info("Retrieved %d context chunks, %d citations", len(context), len(citations))
     return context, citations
 
 
@@ -39,6 +44,7 @@ def retrieve_template_outline(query: str, settings: Settings) -> tuple[str, list
     """Select the best reference deck and rebuild its ordered slide outline."""
     preferred_template = settings.preferred_template_path
     if preferred_template.exists():
+        logger.info("Using preferred template: %s", preferred_template)
         template_slides = _load_template_outline_from_ppt(preferred_template)
         if template_slides:
             return str(preferred_template), template_slides
@@ -63,13 +69,14 @@ def retrieve_template_outline(query: str, settings: Settings) -> tuple[str, list
         payload["best_score"] = min(payload["best_score"], score)
 
     if not source_rank:
+        logger.warning("No slide-type documents found in vector store for template selection")
         return "", []
 
-    # Prefer the deck with the strongest repeated matches, not just one lucky slide.
     selected_source = sorted(
         source_rank.items(),
         key=lambda item: (-item[1]["hits"], item[1]["best_score"]),
     )[0][0]
+    logger.info("Selected template source: %s", selected_source)
 
     template_slides = []
     docstore = getattr(vector_store, "docstore", None)
