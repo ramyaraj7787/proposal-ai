@@ -1,0 +1,41 @@
+[project]
+name = "ai-driven-proposal-tool"
+version = "0.1.0"
+description = "AI-powered proposal development tool with FAISS RAG, LangGraph orchestration, and Ollama."
+requires-python = ">=3.11"
+dependencies = [
+  "faiss-cpu>=1.8.0",
+  "langchain>=0.3.0",
+  "langchain-community>=0.3.0",
+  "langchain-ollama>=0.2.0",
+  "langchain-text-splitters>=0.3.0",
+  "langgraph>=0.2.35",
+  "pydantic>=2.8.0",
+  "pydantic-settings>=2.4.0",
+  "pypdf>=5.0.0",
+  "python-docx>=1.1.2",
+  "python-pptx>=1.0.2",
+  "streamlit>=1.39.0",
+  "typing-extensions>=4.12.2",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+venvPath = "."
+venv = ".venv"
+extraPaths = [".", "src"]
+reportMissingModuleSource = "none"

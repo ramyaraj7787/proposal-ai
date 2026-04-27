@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  proposal_tool:
+    build: .
+    container_name: ai_proposal_tool
+    ports:
+      - "8501:8501"
+    volumes:
+      # Mount the data directory so vector stores and outputs persist on the host
+      - ./data:/app/data
+    environment:
+      # If using a local desktop Ollama installation on Windows/Mac, 
+      # host.docker.internal allows the container to reach the host's localhost.
+      # For Linux, use OLLAMA_BASE_URL=http://172.17.0.1:11434 depending on docker0 bridge.
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    restart: unless-stopped

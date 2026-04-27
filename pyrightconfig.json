@@ -1,0 +1,17 @@
+{
+  "pythonVersion": "3.11",
+  "venvPath": ".",
+  "venv": ".venv",
+  "extraPaths": [
+    ".",
+    "src",
+    "core"
+  ],
+  "include": [
+    "app.py",
+    "src",
+    "core"
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none"
+}
