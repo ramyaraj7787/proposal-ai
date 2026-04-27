@@ -1,13 +1,5 @@
 # AI-Driven Proposal Development Tool
-This solution is designed as an accelerator that helps consulting teams transform an uploaded RFP into a consultant-reviewable proposal deck by combining:
-
-- RFP parsing
-- Retrieval-Augmented Generation
-- FAISS-based enterprise knowledge search
-- LangGraph-based workflow orchestration
-- Ollama-hosted local language models
-- Output Evaluation and Human Feedback Loop
-- PowerPoint deck generation
+An AI-powered accelerator that converts uploaded RFPs into consultant-ready proposal decks by combining RFP parsing, RAG with FAISS-based enterprise knowledge search, and LangGraph-orchestrated workflows using local LLMs. It also incorporates evaluation, human feedback loops, and automated PowerPoint generation for high-quality outputs.
 
 ## Why this solution stands out
 
