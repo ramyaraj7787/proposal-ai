@@ -6,9 +6,7 @@ from watchdog.events import FileSystemEventHandler
 
 from core.logger import get_logger
 from core.config import get_settings
-from services.ingestion.loaders import load_documents_from_directory
-from services.ingestion.chunking import chunk_documents
-from services.retrieval.vector_store import create_vector_store
+from services.ingestion.reindex_service import reindex_knowledge_base
 
 logger = get_logger(__name__)
 
@@ -40,18 +38,9 @@ class ReindexEventHandler(FileSystemEventHandler):
         self._timer.start()
 
     def _do_reindex(self):
-        logger.info("Starting background re-indexing of historical files...")
+        logger.info("Starting background re-indexing via folder watcher...")
         try:
-            root_dir = Path(__file__).resolve().parent.parent.parent.parent
-            source_dir = root_dir / "data" / "raw"
-            if not source_dir.exists():
-                logger.warning("Source directory %s does not exist. Skipping reindex.", source_dir)
-                return
-
-            raw_documents = load_documents_from_directory(str(source_dir))
-            chunked_documents = chunk_documents(raw_documents, self._settings)
-            create_vector_store(chunked_documents, self._settings)
-            logger.info("Successfully reindexed %d chunks in the background!", len(chunked_documents))
+            reindex_knowledge_base(self._settings)
         except Exception as e:
             logger.error("Error during background re-indexing: %s", e)
 

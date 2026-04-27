@@ -25,6 +25,7 @@ from graph.state import ProposalState
 from services.ppt.ppt_builder import build_proposal_ppt
 from services.generation.chat_updater import update_proposal_via_chat
 from services.ingestion.folder_watcher import start_folder_watcher
+from services.ingestion.reindex_service import reindex_knowledge_base
 import shutil
 
 @asynccontextmanager
@@ -168,7 +169,7 @@ async def download_ppt(session_id: str):
 async def upload_knowledge_file(file: UploadFile = File(...)):
     """
     Endpoint for uploading a historical file to the knowledge base.
-    The background folder_watcher will automatically pick it up and reindex!
+    Now performs indexing synchronously for immediate feedback.
     """
     try:
         raw_dir = ROOT_DIR / "data" / "raw"
@@ -178,6 +179,13 @@ async def upload_knowledge_file(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        return {"message": f"File {file.filename} added to knowledge base! Re-indexing automatically triggered in background."}
+        # Perform synchronous re-indexing
+        num_chunks = reindex_knowledge_base(settings)
+            
+        return {
+            "message": f"File {file.filename} uploaded and indexed successfully!",
+            "chunks_processed": num_chunks
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+        print(f"Error in KB upload/index: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process knowledge base file: {str(e)}")
