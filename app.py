@@ -180,6 +180,7 @@ def render_results(result, debug=False):
         "📄 Sections",
         "📥 Output",
         "📊 Evaluation",
+        "🔍 Critic Review",
         "📝 Feedback",
         "🛠 Debug" if debug else "ℹ️ Info",
     ])
@@ -260,8 +261,25 @@ def render_results(result, debug=False):
         st.progress(metrics["completeness"])
         st.caption("Proposal completeness")
 
-    # Feedback
+    # Critic Review
     with tabs[7]:
+        st.subheader("Critic Review")
+        feedback = result.get("critic_feedback", [])
+        needs_retry = result.get("needs_retry", False)
+
+        if needs_retry:
+            st.warning("⚠️ Critic flagged issues with this proposal.")
+        else:
+            st.success("✅ Proposal passed critic review.")
+
+        if feedback:
+            for issue in feedback:
+                st.write(f"- {issue}")
+        else:
+            st.info("No issues flagged by the critic.")
+
+    # Feedback
+    with tabs[8]:
         st.subheader("📝 Feedback")
         st.write("Help improve the system by rating this proposal.")
         col1, col2 = st.columns(2)
@@ -317,7 +335,7 @@ def render_results(result, debug=False):
                         st.markdown(f"{icon} **{ts}** — {comment_text}")
 
     # Debug / Info
-    with tabs[8]:
+    with tabs[9]:
         if debug:
             st.subheader("Debug Trace")
             st.json(result)

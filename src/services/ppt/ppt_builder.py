@@ -22,10 +22,16 @@ def build_proposal_ppt(state: dict, settings: Settings) -> str:
     _populate_cover_slide(presentation, state)
 
     content_template_slides = _get_content_template_slides(state)
-    for section, template_slide in zip(state["proposal_sections"], content_template_slides):
+    for i, section in enumerate(state["proposal_sections"]):
+        if i < len(content_template_slides):
+            template_slide = content_template_slides[i]
+            slide_index = template_slide.get("slide_number", 0) - 1
+        else:
+            slide_index = len(presentation.slides)
+
         target_slide = _resolve_target_slide(
             presentation,
-            template_slide.get("slide_number", 0) - 1,
+            slide_index,
         )
         bullets = [
             line.strip()
@@ -202,8 +208,6 @@ def _normalize_bullets(bullets: list[str]) -> list[str]:
             continue
         if cleaned[-1] not in ".!?":
             cleaned += "."
-        if len(cleaned) > MAX_BULLET_CHARS:
-            cleaned = cleaned[: MAX_BULLET_CHARS - 3].rstrip() + "..."
         normalized.append(cleaned)
     return normalized
 

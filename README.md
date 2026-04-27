@@ -8,7 +8,7 @@ An AI-powered accelerator that converts uploaded RFPs into consultant-ready prop
 - Orchestrates the workflow with `LangGraph`, which makes the generation process traceable, extensible, and easy to govern.
 - Uses `Ollama` for local LLMs so the design works even in enterprise environments with strict data boundaries.
 - Produces consultant-ready `PowerPoint` output, not just plain text, directly matching the case-study requirement.
-- Includes a simple `Streamlit` UI for uploading an RFP and capturing business metadata like country, sector, domain, and client.
+- Includes a modern `React` UI with an interactive Chat Interface backed by `FastAPI`, allowing users to iteratively refine the proposal sections via conversational instructions.
 
 ## Target architecture
 
@@ -18,9 +18,11 @@ An AI-powered accelerator that converts uploaded RFPs into consultant-ready prop
    Chunks, enriches, and indexes content into `FAISS`.
 3. `Orchestration Layer`
    Runs a `LangGraph` workflow for parsing, retrieval, gap analysis, drafting, and slide generation.
-4. `Generation Layer`
-   Uses `Ollama` models for reasoning, retrieval grounding, and content generation.
-5. `Delivery Layer`
+4. `API & Web Layer`
+   `FastAPI` serves the interactive `React` frontend and provides endpoints for generation, chat-based iterative refinement, and document download.
+5. `Generation & Refinement Layer`
+   Uses `Ollama` models for reasoning, retrieval grounding, content generation, and surgically applying chat instructions (via an action-based schema) to the proposal sections.
+6. `Delivery Layer`
    Exports a structured `.pptx` proposal deck and traceable rationale.
 
 ## Project structure
@@ -30,14 +32,15 @@ An AI-powered accelerator that converts uploaded RFPs into consultant-ready prop
 ├── .dockerignore                         # Excludes unnecessary files from Docker builds
 ├── .env.example                          # Template for environment variables
 ├── .gitignore                            # Files/folders ignored by Git 
-├── app.py                                # Streamlit UI entry point for the application
 ├── docker-compose.yml                    # Multi-container setup (if extended)
 ├── Dockerfile                            # Container definition for the app
 ├── LICENSE                               # Open-source license
 ├── pyproject.toml                        # Project dependencies and build configuration
 ├── pyrightconfig.json                    # Static type checking configuration (Pyright)
 ├── README.md                             # Project documentation
-
+├── frontend/                             # React SPA frontend (HTML/CSS via CDN)
+│   ├── index.html                        # Main UI layout and logic
+│   └── styles.css                        # UI styling and glassmorphism theme
 ├── core/                                 # Core infrastructure utilities
 │   ├── config.py                         # Settings loader (env + defaults)
 │   ├── constants.py                      # Global constants (app name, prompts, etc.)
@@ -65,6 +68,9 @@ An AI-powered accelerator that converts uploaded RFPs into consultant-ready prop
 │           └── index.pkl                 # Metadata mapping
 
 ├── src/                                  # Main application source code
+│
+│   ├── api/                              # FastAPI application
+│   │   └── main.py                       # REST API endpoints and static file serving
 │
 │   ├── graph/                            # LangGraph orchestration layer
 │   │   ├── builder.py                    # Builds and compiles the workflow graph
@@ -98,7 +104,8 @@ An AI-powered accelerator that converts uploaded RFPs into consultant-ready prop
 │       ├── generation/                   # Proposal generation logic
 │       │   ├── proposal_generator.py     # Main generation pipeline
 │       │   ├── prompt_templates.py       # LLM prompts
-│       │   └── prompt_optimizer.py       # Feedback-driven prompt tuning
+│       │   ├── prompt_optimizer.py       # Feedback-driven prompt tuning
+│       │   └── chat_updater.py           # Chat instruction integration logic
 │
 │       ├── guardrails/                   # Safety + validation
 │       │   ├── hallucination.py          # Detect hallucinations
@@ -168,11 +175,12 @@ python src/scripts/index_documents.py --source_dir data/raw
 
 If you change the ingestion logic or add new proposal decks, rebuild the FAISS index so the latest slide-level content is searchable.
 
-5. Launch the UI:
+5. Launch the backend and UI:
 
 ```bash
-streamlit run app.py
+uvicorn src.api.main:app --host 127.0.0.1 --port 8000
 ```
+Open your browser to `http://127.0.0.1:8000/`.
 
 ## Docker Setup
 
@@ -192,14 +200,12 @@ The application will be available at `http://localhost:8501`. The `data/` direct
 
 ## Demo flow
 
-1. Upload an RFP document.
-2. Provide metadata such as country, sector, domain, and client.
-3. Run the proposal generation workflow.
-4. Review:
-   - retrieved source references
-   - identified risks and gaps
-   - generated proposal slides grounded in retrieved historical proposal decks
-   - exported PowerPoint path
+1. Open `http://127.0.0.1:8000/` in your browser.
+2. Upload an RFP document and provide metadata such as country, sector, domain, and client.
+3. Click Generate Proposal to run the LangGraph workflow.
+4. Review the generated proposal sections in the right pane.
+5. Use the Chat Interface in the left pane to give specific instructions to the AI (e.g. "Add a section on Risk Management").
+6. Watch the proposal update in real-time, then download the final PowerPoint output via the `PPTX` button.
 
 ## Enterprise-readiness notes
 

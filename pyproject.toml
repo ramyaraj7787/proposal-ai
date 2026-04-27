@@ -17,6 +17,10 @@ dependencies = [
   "python-pptx>=1.0.2",
   "streamlit>=1.39.0",
   "typing-extensions>=4.12.2",
+  "fastapi>=0.110.0",
+  "uvicorn>=0.29.0",
+  "python-multipart>=0.0.9",
+  "watchdog>=4.0.0"
 ]
 
 [build-system]

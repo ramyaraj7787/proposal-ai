@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Proposal Generator</title>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function App() {
+            const [sessionId, setSessionId] = useState(null);
+            const [isLoading, setIsLoading] = useState(false);
+            const [sections, setSections] = useState([]);
+            const [chatHistory, setChatHistory] = useState([]);
+            const [pptUrl, setPptUrl] = useState(null);
+            const [activeTab, setActiveTab] = useState('proposal');
+
+            // Form states
+            const [country, setCountry] = useState("India");
+            const [sector, setSector] = useState("Financial Services");
+            const [domain, setDomain] = useState("Data & AI");
+            const [client, setClient] = useState("Confidential Client");
+            const [objective, setObjective] = useState("Build an AI-led transformation proposal aligned to the RFP.");
+            const [file, setFile] = useState(null);
+            const [kbMessage, setKbMessage] = useState("");
+
+            // Chat input
+            const [chatInput, setChatInput] = useState("");
+            const chatEndRef = useRef(null);
+
+            const scrollToBottom = () => {
+                chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            };
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [chatHistory]);
+
+            const handleNewProposal = () => {
+                setSessionId(null);
+                setSections([]);
+                setChatHistory([]);
+                setPptUrl(null);
+                setFile(null);
+            };
+
+            const handleUpload = async (e) => {
+                e.preventDefault();
+                if (!file) return alert("Please upload an RFP file.");
+                
+                setIsLoading(true);
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("country", country);
+                formData.append("sector", sector);
+                formData.append("domain", domain);
+                formData.append("client", client);
+                formData.append("proposal_objective", objective);
+
+                try {
+                    const res = await fetch("/api/upload", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        setSessionId(data.session_id);
+                        setSections(data.proposal_sections);
+                        setPptUrl(`/api/download/${data.session_id}`);
+                        setChatHistory([{
+                            role: "assistant", 
+                            content: "I have generated the initial proposal. How would you like me to adjust it?"
+                        }]);
+                    } else {
+                        alert("Error: " + data.detail);
+                    }
+                } catch (error) {
+                    console.error("Upload error:", error);
+                    alert("An error occurred during upload.");
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const handleKbUpload = async (e) => {
+                const kbFile = e.target.files[0];
+                if (!kbFile) return;
+                
+                setKbMessage("Uploading...");
+                const formData = new FormData();
+                formData.append("file", kbFile);
+                
+                try {
+                    const response = await fetch("http://127.0.0.1:8000/api/knowledge-base", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        setKbMessage("Added to Knowledge Base! Re-indexing in background.");
+                    } else {
+                        setKbMessage("Error: " + data.detail);
+                    }
+                } catch (err) {
+                    setKbMessage("Failed to upload.");
+                }
+                
+                // Reset file input
+                e.target.value = null;
+            };
+
+            const handleChat = async (e) => {
+                e.preventDefault();
+                if (!chatInput.trim() || !sessionId) return;
+
+                const userMsg = chatInput.trim();
+                setChatInput("");
+                setChatHistory(prev => [...prev, { role: "user", content: userMsg }]);
+                setIsLoading(true);
+
+                try {
+                    const res = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ session_id: sessionId, message: userMsg })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        setSections(data.proposal_sections);
+                        setChatHistory(data.chat_history);
+                        setPptUrl(`/api/download/${sessionId}?t=${Date.now()}`); // Cache busting
+                    } else {
+                        alert("Error: " + data.detail);
+                    }
+                } catch (error) {
+                    console.error("Chat error:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            return (
+                <div className="app-container">
+                    {/* Left Sidebar - Configuration & Upload */}
+                    {!sessionId ? (
+                        <div className="sidebar full-center">
+                            <div className="hero-section">
+                                <img src="/static/hero.png" alt="Proposal AI Hero" />
+                            </div>
+                            <div className="glass-card config-form">
+                                <h1><i className="fa-solid fa-wand-magic-sparkles"></i> Proposal AI</h1>
+                                <p>Upload your RFP to generate a dynamic proposal</p>
+                                
+                                <form onSubmit={handleUpload}>
+                                    <div className="form-group">
+                                        <label>Country</label>
+                                        <input value={country} onChange={e => setCountry(e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Sector</label>
+                                        <input value={sector} onChange={e => setSector(e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Domain</label>
+                                        <input value={domain} onChange={e => setDomain(e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Client</label>
+                                        <input value={client} onChange={e => setClient(e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Objective</label>
+                                        <textarea value={objective} onChange={e => setObjective(e.target.value)} rows="2"></textarea>
+                                    </div>
+                                    <div className="form-group file-upload">
+                                        <label htmlFor="file-upload" className="custom-file-upload">
+                                            <i className="fa-solid fa-cloud-arrow-up"></i> {file ? file.name : "Upload RFP (PDF, DOCX, TXT)"}
+                                        </label>
+                                        <input id="file-upload" type="file" onChange={e => setFile(e.target.files[0])} accept=".pdf,.docx,.txt" />
+                                    </div>
+                                    
+                                    <button type="submit" disabled={isLoading} className="btn-primary glow-effect">
+                                        {isLoading ? <span className="spinner"></span> : "Generate Proposal"}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="workspace">
+                            {/* Left Pane - Chat Interface */}
+                            <div className="chat-pane glass-panel">
+                                <div className="pane-header">
+                                    <h2><i className="fa-regular fa-comments"></i> AI Consultant</h2>
+                                    <div style={{display: 'flex', gap: '10px'}}>
+                                        <button onClick={handleNewProposal} className="btn-secondary" style={{cursor: 'pointer'}}>
+                                            <i className="fa-solid fa-plus"></i> New
+                                        </button>
+                                        {pptUrl && (
+                                            <a href={pptUrl} className="btn-secondary" download>
+                                                <i className="fa-solid fa-download"></i> PPTX
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="chat-history">
+                                    {chatHistory.map((msg, idx) => (
+                                        <div key={idx} className={`chat-message ${msg.role}`}>
+                                            <div className="msg-bubble">{msg.content}</div>
+                                        </div>
+                                    ))}
+                                    {isLoading && (
+                                        <div className="chat-message assistant">
+                                            <div className="msg-bubble typing"><span className="dot"></span><span className="dot"></span><span className="dot"></span></div>
+                                        </div>
+                                    )}
+                                    <div ref={chatEndRef} />
+                                </div>
+                                <form className="chat-input-area" onSubmit={handleChat}>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g., Make the executive summary more technical..." 
+                                        value={chatInput} 
+                                        onChange={e => setChatInput(e.target.value)} 
+                                        disabled={isLoading}
+                                    />
+                                    <button type="submit" disabled={isLoading || !chatInput.trim()} className="btn-send">
+                                        <i className="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            {/* Right Pane - Proposal Preview */}
+                            <div className="preview-pane glass-panel">
+                                <div className="pane-header">
+                                    <h2><i className="fa-solid fa-file-contract"></i> Proposal Draft</h2>
+                                    <div className="tabs">
+                                        <button className={activeTab === 'proposal' ? 'active' : ''} onClick={() => setActiveTab('proposal')}>Content</button>
+                                    </div>
+                                </div>
+                                <div className="preview-content">
+                                    {sections.map((sec, idx) => (
+                                        <div key={idx} className="slide-card">
+                                            <h3>{sec.title}</h3>
+                                            <div className="slide-body">
+                                                {sec.content.split('\n').map((line, i) => (
+                                                    <p key={i}>{line}</p>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Fixed Knowledge Base Upload Card - Bottom Left (Landing page only) */}
+                    {!sessionId && (
+                        <div className="kb-card-fixed" style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+                            <h2 style={{fontSize: '0.95rem', margin: '0', whiteSpace: 'nowrap'}}><i className="fa-solid fa-database"></i> Knowledge Base</h2>
+                            <input type="file" id="kb-upload" style={{display: 'none'}} onChange={handleKbUpload} accept=".pdf,.docx,.txt,.pptx" />
+                            <label htmlFor="kb-upload" className="btn-secondary" style={{whiteSpace: 'nowrap', cursor: 'pointer', fontSize: '0.85rem', flexShrink: 0}}>
+                                <i className="fa-solid fa-upload"></i> Upload Historical File
+                            </label>
+                            {kbMessage && <p style={{margin: '0', fontSize: '0.75rem', color: '#86efac', whiteSpace: 'nowrap'}}>{kbMessage}</p>}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
