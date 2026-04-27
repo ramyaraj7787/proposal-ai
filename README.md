@@ -1,6 +1,13 @@
 # AI-Driven Proposal Development Tool
+This solution is designed as an accelerator that helps consulting teams transform an uploaded RFP into a consultant-reviewable proposal deck by combining:
 
-This solution is designed for the case study exactly as a Senior AI Consultant would position it: not as a one-off demo, but as a production-ready accelerator that helps consulting teams draft stronger proposals faster, with governance, explainability, and reusable assets built in.
+- RFP parsing
+- Retrieval-Augmented Generation
+- FAISS-based enterprise knowledge search
+- LangGraph-based workflow orchestration
+- Ollama-hosted local language models
+- Output Evaluation and Human Feedback Loop
+- PowerPoint deck generation
 
 ## Why this solution stands out
 
@@ -56,7 +63,7 @@ pip install -e .
 2. Start Ollama and pull the required local models:
 
 ```bash
-ollama pull mistral:7b 
+ollama pull mistral:7b
 ollama pull nomic-embed-text
 ```
 
