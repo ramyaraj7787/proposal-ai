@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 # Default path to the PowerPoint template
-DEFAULT_TEMPLATE_PATH = Path("data/raw/template.pptx")
+DEFAULT_TEMPLATE_PATH = Path("data/template/template.pptx")
 
 
 class Settings(BaseSettings):
