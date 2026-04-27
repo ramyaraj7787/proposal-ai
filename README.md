@@ -1,6 +1,8 @@
 # AI-Driven Proposal Development Tool
 An AI-powered accelerator that converts uploaded RFPs into consultant-ready proposal decks by combining RFP parsing, RAG with FAISS-based enterprise knowledge search, and LangGraph-orchestrated workflows using local LLMs. It also incorporates evaluation, human feedback loops, and automated PowerPoint generation for high-quality outputs.
 
+<img width="1672" height="941" alt="ChatGPT Image Apr 27, 2026, 09_32_42 PM" src="https://github.com/user-attachments/assets/fe3deef6-1ba9-4c61-a4ca-5366b9bb9937" />
+
 ## Why this solution stands out
 
 - Uses a proper Retrieval-Augmented Generation pipeline to ingest historical proposals, templates, and case studies across `DOCX`, `PDF`, and `PPTX`.
