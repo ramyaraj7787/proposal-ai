@@ -32,13 +32,11 @@ An AI-powered accelerator that converts uploaded RFPs into consultant-ready prop
 ```text
 .
 ├── .dockerignore                         # Excludes unnecessary files from Docker builds
-├── .env.example                          # Template for environment variables
 ├── .gitignore                            # Files/folders ignored by Git 
 ├── docker-compose.yml                    # Multi-container setup (if extended)
 ├── Dockerfile                            # Container definition for the app
 ├── LICENSE                               # Open-source license
 ├── pyproject.toml                        # Project dependencies and build configuration
-├── pyrightconfig.json                    # Static type checking configuration (Pyright)
 ├── README.md                             # Project documentation
 ├── frontend/                             # React SPA frontend (HTML/CSS via CDN)
 │   ├── index.html                        # Main UI layout and logic
